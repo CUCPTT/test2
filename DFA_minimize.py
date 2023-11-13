@@ -9,12 +9,20 @@ def move(a, e, f):
 
 # 子集划分算法
 def operation(nodes,edges):
+
+    # 先将输入的edges每个元组中的节点序号转换为节点
+    node_dict = {str(row[1]): row[0] for row in nodes}
+    edges = [(list(node_dict.keys())[list(node_dict.values()).index(source)], 
+             list(node_dict.keys())[list(node_dict.values()).index(target)], 
+             label) 
+            for source, target, label in edges]
+
     # 从 nodes 中提取节点集合 K
     K = [str(node[1]) for node in nodes]
     # 从 edges 中提取符号集合 E
     E = list(set([edge[2] for edge in edges]))
     # 从 nodes 中提取初态集合 S
-    S = [str(node[1]) for node in nodes if node[0] == 0]
+    S = [str(node[1]) for node in nodes if 'begin' in node[2]]
     # 从 nodes 中提取终态集合 Z
     Z = [str(node[1]) for node in nodes if 'end' in node[2]]
     # 将元组列表转换为二维列表    
@@ -22,6 +30,7 @@ def operation(nodes,edges):
 
     # 划分出状态集：终态和非终态
     a = [] 
+    KK=[]
     for x in K:
         if x not in Z:
             a.append(x)
@@ -71,20 +80,22 @@ def operation(nodes,edges):
 
     # 将相同状态的节点进行合并
     for n in KK:
-        if len(n) >= 2:
-            for i in range(1, len(n)):
-                if n[i] in K:
-                    K.remove(n[i])
-                if n[i] in S:
-                    S.remove(n[i])
-                if n[i] in Z:
-                    Z.remove(n[i])
-                # 对合并的节点进行边的合并
-                for e_n in f:
-                    if e_n[0] == n[i]:
-                        e_n[0] = n[0]
-                    if e_n[2] == n[i]:
-                        e_n[2] = n[0]
+        while(len(n) >= 2):
+            a=n[len(n)-1]
+            if n[len(n)-1] in K:
+                K.remove(n[len(n)-1])
+            if n[len(n)-1] in S:
+                S.remove(n[len(n)-1])
+            if n[len(n)-1] in Z:
+                Z.remove(n[len(n)-1])
+            # 更新n的集合
+            n = [x for x in n if x != a]
+            # 对合并的节点进行边的合并
+            for e_n in f:
+                if e_n[0] == a:
+                    e_n[0] = n[0]
+                if e_n[2] == a:
+                    e_n[2] = n[0]
     
     # 对合并后的边进行去重得到二维边列表
     f_min = [list(edge) for edge in set(tuple(edge) for edge in f)]
@@ -102,7 +113,7 @@ def operation(nodes,edges):
     nodes_tuples = []
     for node in nodes_list:
         if node in S:
-            nodes_tuples.append((0, node, ''))
+            nodes_tuples.append((0, node, 'begin'))
         elif node in Z:
             nodes_tuples.append((current_index, node, 'end'))
             current_index += 1
@@ -118,18 +129,20 @@ def operation(nodes,edges):
 
     return  nodes_tuples,New_edges
 
-
-# 输入样例：
+# 测试DFA最小化
+# 两个输入样例：
 # 定义节点列表
-nodes = [(0, '1', ''), (1, '2', ''), (2, '3', ''), (3, '4', 'end')]
+# nodes = [(0, '1', 'begin'), (1, '2', ''), (2, '3', ''), (3, '4', 'end')]
+# nodes = [(0, '0', 'begin'), (1, '1', ''), (2, '2', ''), (3, '3', 'end'),(4,'4','end'),(5,'5','end'),(6,'6','end')]
+
 # 定义边列表
-edges = [(1, 3,'b'), (1,2,'a'), (2,2,'a'), (2,4,'b'), (3,3,'b'), (3,2,'a'), (4,3,'b'), (4,2,'a')]
+# edges = [(0, 2,'b'), (0,1,'a'), (1,1,'a'), (1,3,'b'), (2,2,'b'), (2,1,'a'), (3,2,'b'), (3,1,'a')]
+# edges = [(0, 1,'a'), (0,2,'b'), (1,2,'b'), (2,1,'a'), (1,3,'a'), (2,4,'b'), (3,3,'a'), (4,4,'b'),(3,5,'b'),(5,4,'b'),(4,6,'a'),(5,6,'a'),(6,5,'b'),(6,3,'a')]
     
 # 执行DFA最小化操作
-result = operation(nodes, edges)
-nodes_tuples, New_edges = result
 
-print("Nodes Tuples:", nodes_tuples)
-print("New Edges:", New_edges)
+# result = operation(nodes, edges)
+# nodes_tuples, New_edges = result
 
-
+# print("Nodes Tuples:", nodes_tuples)
+# print("New Edges:", New_edges)
