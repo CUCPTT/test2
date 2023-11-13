@@ -24,7 +24,7 @@ def operation(nodes,edges):
     # 从 nodes 中提取初态集合 S
     S = [str(node[1]) for node in nodes if 'begin' in node[2]]
     # 从 nodes 中提取终态集合 Z
-    Z = [str(node[1]) for node in nodes if 'end' in node[2]]
+    Z = [str(node[1]) for node in nodes if 'end' in node[3]]
     # 将元组列表转换为二维列表    
     f = [[str(t[0]), t[2], str(t[1])] for t in edges]
 
@@ -113,12 +113,12 @@ def operation(nodes,edges):
     nodes_tuples = []
     for node in nodes_list:
         if node in S:
-            nodes_tuples.append((0, node, 'begin'))
+            nodes_tuples.append((0, node, 'begin',''))
         elif node in Z:
-            nodes_tuples.append((current_index, node, 'end'))
+            nodes_tuples.append((current_index, node, '','end'))
             current_index += 1
         else:
-            nodes_tuples.append((current_index, node, ''))
+            nodes_tuples.append((current_index, node, '',''))
             current_index += 1
 
     # 将二维边列表的节点用序号代替
@@ -133,16 +133,16 @@ def operation(nodes,edges):
 # 两个输入样例：
 # 定义节点列表
 # nodes = [(0, '1', 'begin'), (1, '2', ''), (2, '3', ''), (3, '4', 'end')]
-# nodes = [(0, '0', 'begin'), (1, '1', ''), (2, '2', ''), (3, '3', 'end'),(4,'4','end'),(5,'5','end'),(6,'6','end')]
+nodes = [(0, '0', 'begin',''), (1, '1', '',''), (2, '2', '',''), (3, '3','', 'end'),(4,'4','','end'),(5,'5','','end'),(6,'6','','end')]
 
 # 定义边列表
 # edges = [(0, 2,'b'), (0,1,'a'), (1,1,'a'), (1,3,'b'), (2,2,'b'), (2,1,'a'), (3,2,'b'), (3,1,'a')]
-# edges = [(0, 1,'a'), (0,2,'b'), (1,2,'b'), (2,1,'a'), (1,3,'a'), (2,4,'b'), (3,3,'a'), (4,4,'b'),(3,5,'b'),(5,4,'b'),(4,6,'a'),(5,6,'a'),(6,5,'b'),(6,3,'a')]
+edges = [(0, 1,'a'), (0,2,'b'), (1,2,'b'), (2,1,'a'), (1,3,'a'), (2,4,'b'), (3,3,'a'), (4,4,'b'),(3,5,'b'),(5,4,'b'),(4,6,'a'),(5,6,'a'),(6,5,'b'),(6,3,'a')]
     
 # 执行DFA最小化操作
 
-# result = operation(nodes, edges)
-# nodes_tuples, New_edges = result
+result = operation(nodes, edges)
+nodes_tuples, New_edges = result
 
-# print("Nodes Tuples:", nodes_tuples)
-# print("New Edges:", New_edges)
+print("Nodes Tuples:", nodes_tuples)
+print("New Edges:", New_edges)
