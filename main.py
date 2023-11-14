@@ -28,8 +28,6 @@ def create_graph(nodes, edges):
         else:
             dot.node(str(node[0]), node[1])
 
-
-
     # 添加边
     for edge in edges:
         dot.edge(str(edge[0]), str(edge[1]), label=edge[2])
