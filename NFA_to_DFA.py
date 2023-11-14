@@ -106,4 +106,7 @@ def nfa_to_dfa(nfa_nodes,nfa_edges):
     for i in temp_edges:
         dfa_edges.append((temp_nodes.index(i[0]),temp_nodes.index(i[1]),i[2]))
 
+    print("DFA_nodes:",dfa_nodes)
+    print("DFA_edges:",dfa_edges)
+
     return dfa_nodes , dfa_edges
