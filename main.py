@@ -9,7 +9,7 @@ from infix2postfix import infix_to_postfix
 from postfix2nfa import str_to_nfa,generate_nfa
 from NFA_to_DFA import nfa_to_dfa
 from DFAMinimize import operation
- 
+
 def create_graph(nodes, edges):
     # 创建有向图并设置布局方向为水平
     dot = graphviz.Digraph(graph_attr={'rankdir': 'LR'})
