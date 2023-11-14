@@ -10,13 +10,6 @@ from postfix2nfa import str_to_nfa,generate_nfa
 from NFA_to_DFA import nfa_to_dfa
 from DFA_Minimize import operation
 
-# infix_expression = '(a*|b*|c*)*'
-# postfix_expression = infix_to_postfix(infix_expression)
-# print(postfix_expression)
-# nfa_instance = str_to_nfa(postfix_expression)
-# nodes,edges = generate_nfa(nfa_instance)
-
- 
 def create_graph(nodes, edges):
     # 创建有向图并设置布局方向为水平
     dot = graphviz.Digraph(graph_attr={'rankdir': 'LR'})
