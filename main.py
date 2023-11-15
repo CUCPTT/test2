@@ -4,6 +4,7 @@ from tkinter import ttk, messagebox
 from PIL import Image, ImageTk
 import re
 import graphviz
+from matplotlib import pyplot as plt
 from infix2postfix import infix_to_postfix
 from postfix2nfa import str_to_nfa, generate_nfa
 from NFA_to_DFA import nfa_to_dfa
@@ -14,7 +15,6 @@ class App:
         self.master = master
         master.title('Experiment-2')
         master.configure(bg='#FFE4E1')
-
         self.create_widgets()
 
     def create_widgets(self):
@@ -22,9 +22,9 @@ class App:
         self.frame.grid(column=0, row=0, sticky=(tk.W, tk.E, tk.N, tk.S))
 
         self.regex_label = ttk.Label(self.frame, text='INPUT:', style='My.TLabel')
-        self.regex_entry = ttk.Entry(self.frame, width=30)
+        self.regex_entry = ttk.Entry(self.frame, width=40)
         self.option_label = ttk.Label(self.frame, text='SELECT:', style='My.TLabel')
-        self.option_combobox = ttk.Combobox(self.frame, values=['NFA', 'DFA', 'Minimized DFA'], width=25)
+        self.option_combobox = ttk.Combobox(self.frame, values=['NFA', 'DFA', 'Minimized DFA'], width=35)
         self.submit_button = ttk.Button(self.frame, text='Submit', command=self.submit_button_clicked, style='My.TButton')
 
         # 输出图片
@@ -32,16 +32,16 @@ class App:
         self.image_frame.grid(column=0, row=1, sticky=(tk.W, tk.E, tk.N, tk.S), pady=(10, 10))
 
         # 白色画布展示图片
-        self.canvas = tk.Canvas(self.image_frame, bg="white", width=500, height=300, bd=2, relief=tk.SOLID)
+        self.canvas = tk.Canvas(self.image_frame, bg="white", width=1000, height=200, bd=2, relief=tk.SOLID)
         self.canvas.pack()
 
         # 样例正则表达式
-        examples = ['a|b', 'a*b', '(a|b)*abb','(a|b)*','abc(a|b)*abd','a*b|a','a(b|c)*','ac(c|d)*','abc(a|c)*(a|d)*']
+        examples = ['a|b', 'a*b', '(a|b)*abb','(a|b)*','abc(a|b)*abd','a*b|a','a(b|c)*','ac(c|d)*','abc(a|c)*(a|d)*','啊|哈','wo(a|e)*','e(a|o)*']
         self.example_buttons = []
         for i, example in enumerate(examples):
             button_text = f'{example}'
-            button = ttk.Button(self.frame, text=button_text, command=lambda ex=example: self.set_example(ex), style='My.TButton')
-            button.grid(column=3 + i % 3, row=i // 3, pady=(10, 10), padx=(0, 5))
+            button = ttk.Button(self.frame, text=button_text, command=lambda ex=example: self.set_example(ex), style='My.TButton',width=21)
+            button.grid(column=4 + i % 4, row=i // 4, pady=(10, 10), padx=(10, 5))
             self.example_buttons.append(button)
 
         # 排列
@@ -58,7 +58,7 @@ class App:
         style.configure('My.TButton', background='#FF69B4')
 
         # 窗口大小
-        self.master.geometry("650x550")
+        self.master.geometry("1100x450")
 
     def submit_button_clicked(self):
         regex = self.regex_entry.get()
@@ -90,7 +90,6 @@ class App:
 
     def create_graph(self, nodes, edges):
         dot = graphviz.Digraph(graph_attr={'rankdir': 'LR'})
-
         for node in nodes:
             if node[2] == 'begin':
                 dot.node('begin_node', label='', shape='point')
@@ -111,7 +110,15 @@ class App:
         else:
             image = Image.new("RGB", (1, 1), color="white")
 
-        image.thumbnail((500, 300))
+        image.thumbnail((1000, 200))
+        # 将图像数据加载到PIL图像对象中
+        image_plt = Image.open(io.BytesIO(image_data))
+
+        # 显示图像
+        plt.imshow(image_plt)
+        plt.axis('off')
+        plt.show()
+        
 
         # 清除之前的图片
         self.canvas.delete("all")
