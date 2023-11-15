@@ -1,125 +1,147 @@
 import io
 import tkinter as tk
 from tkinter import ttk, messagebox
-from PIL import Image
+from PIL import Image, ImageTk
 import re
 import graphviz
-from matplotlib import pyplot as plt
 from infix2postfix import infix_to_postfix
-from postfix2nfa import str_to_nfa,generate_nfa
+from postfix2nfa import str_to_nfa, generate_nfa
 from NFA_to_DFA import nfa_to_dfa
-from DFAMinimize import operation
+from DFAMinimize import DFA_Minimize
 
-def create_graph(nodes, edges):
-    # 创建有向图并设置布局方向为水平
-    dot = graphviz.Digraph(graph_attr={'rankdir': 'LR'})
+class App:
+    def __init__(self, master):
+        self.master = master
+        master.title('Experiment-2')
+        master.configure(bg='#FFE4E1')
 
-    # 添加节点
-    for node in nodes:
-        if node[2] == 'begin':
-            # 创建一个虚拟节点
-            dot.node('begin_node', label='', shape='point')   
-            # 从虚拟节点指向目标节点
-            dot.edge('begin_node', str(node[0]), arrowhead='onormal') 
-        
-        # 检查节点是否为"结束"节点，如果是，则添加两个环的标记
-        if node[3] == 'end':
-            dot.node(str(node[0]), node[1], shape='doublecircle')
+        self.create_widgets()
+
+    def create_widgets(self):
+        self.frame = ttk.Frame(self.master, padding='10', style='My.TFrame')
+        self.frame.grid(column=0, row=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+
+        self.regex_label = ttk.Label(self.frame, text='INPUT:', style='My.TLabel')
+        self.regex_entry = ttk.Entry(self.frame, width=30)
+        self.option_label = ttk.Label(self.frame, text='SELECT:', style='My.TLabel')
+        self.option_combobox = ttk.Combobox(self.frame, values=['NFA', 'DFA', 'Minimized DFA'], width=25)
+        self.submit_button = ttk.Button(self.frame, text='Submit', command=self.submit_button_clicked, style='My.TButton')
+
+        # 输出图片
+        self.image_frame = ttk.Frame(self.master, style='My.TFrame')
+        self.image_frame.grid(column=0, row=1, sticky=(tk.W, tk.E, tk.N, tk.S), pady=(10, 10))
+
+        # 白色画布展示图片
+        self.canvas = tk.Canvas(self.image_frame, bg="white", width=500, height=300, bd=2, relief=tk.SOLID)
+        self.canvas.pack()
+
+        # 样例正则表达式
+        examples = ['a|b', 'a*b', '(a|b)*abb','(a|b)*','abc(a|b)*abd','a*b|a','a(b|c)*','ac(c|d)*','abc(a|c)*(a|d)*']
+        self.example_buttons = []
+        for i, example in enumerate(examples):
+            button_text = f'{example}'
+            button = ttk.Button(self.frame, text=button_text, command=lambda ex=example: self.set_example(ex), style='My.TButton')
+            button.grid(column=3 + i % 3, row=i // 3, pady=(10, 10), padx=(0, 5))
+            self.example_buttons.append(button)
+
+        # 排列
+        self.regex_label.grid(column=0, row=0, pady=(10, 10))
+        self.regex_entry.grid(column=1, row=0, pady=(10, 10))
+        self.option_label.grid(column=0, row=1, pady=(10, 10))
+        self.option_combobox.grid(column=1, row=1, pady=(10, 10))
+        self.submit_button.grid(column=0, row=2, columnspan=2, pady=(10, 20))
+
+        # 样式
+        style = ttk.Style()
+        style.configure('My.TFrame', background='#FFE4E1')
+        style.configure('My.TLabel', background='#FFE4E1')
+        style.configure('My.TButton', background='#FF69B4')
+
+        # 窗口大小
+        self.master.geometry("650x550")
+
+    def submit_button_clicked(self):
+        regex = self.regex_entry.get()
+        option = self.option_combobox.get()
+
+        # 检查输入是否为空
+        if not regex:
+            messagebox.showerror('Empty regular expression', 'Please enter a regular expression.')
+            return
+
+        # 检查输入是否有效
+        try:
+            re.compile(regex)
+        except re.error:
+            messagebox.showerror('Invalid regular expression', 'Invalid regular expression. Please enter a valid one.')
+            return
+
+        # 调用相应函数
+        if option == 'NFA':
+            self.NFA(regex)
+        elif option == 'DFA':
+            self.DFA(regex)
+        elif option == 'Minimized DFA':
+            self.Min_DFA(regex)
         else:
-            dot.node(str(node[0]), node[1])
+            option = None
+            messagebox.showerror('Invalid option', 'Invalid option. Please select NFA, DFA, or Minimized DFA.')
+            return
 
-    # 添加边
-    for edge in edges:
-        dot.edge(str(edge[0]), str(edge[1]), label=edge[2])
+    def create_graph(self, nodes, edges):
+        dot = graphviz.Digraph(graph_attr={'rankdir': 'LR'})
 
-    # 渲染图形并获取图像数据
-    dot.format = 'png'
-    image_data = dot.pipe()
+        for node in nodes:
+            if node[2] == 'begin':
+                dot.node('begin_node', label='', shape='point')
+                dot.edge('begin_node', str(node[0]), arrowhead='onormal')
 
-    # 将图像数据加载到PIL图像对象中
-    image = Image.open(io.BytesIO(image_data))
+            if node[3] == 'end':
+                dot.node(str(node[0]), node[1], shape='doublecircle')
+            else:
+                dot.node(str(node[0]), node[1])
 
-    # 显示图像
-    plt.imshow(image)
-    plt.axis('off')
-    plt.show()
+        for edge in edges:
+            dot.edge(str(edge[0]), str(edge[1]), label=edge[2])
 
-def NFA(input_text):
-    nodes, edges = generate_nfa(str_to_nfa(infix_to_postfix(input_text)))
-    create_graph(nodes, edges)
+        dot.format = 'png'
+        image_data = dot.pipe()
+        if image_data:
+            image = Image.open(io.BytesIO(image_data))
+        else:
+            image = Image.new("RGB", (1, 1), color="white")
 
-def DFA(input_text):
-    nodes, edges = generate_nfa(str_to_nfa(infix_to_postfix(input_text)))
-    nodes, edges = nfa_to_dfa(nodes, edges)
-    create_graph(nodes, edges)
+        image.thumbnail((500, 300))
 
-def Min_DFA(input_text):
-    nodes, edges = generate_nfa(str_to_nfa(infix_to_postfix(input_text)))
-    nodes, edges = nfa_to_dfa(nodes, edges)
-    nodes, edges = operation(nodes, edges)
-    create_graph(nodes, edges)
+        # 清除之前的图片
+        self.canvas.delete("all")
 
-def submit_button_clicked():
-    regex = regex_entry.get()
-    option = option_combobox.get()
+        # 展示新的图片
+        img = ImageTk.PhotoImage(image)
+        self.canvas.create_image(0, 0, anchor=tk.NW, image=img)
+        self.canvas.image = img
 
-    # 检查正则表达式是否为空
-    if not regex:
-        messagebox.showerror('Empty regular expression', 'Please enter a regular expression.')
-        return
+    def NFA(self, input_text):
+        nodes, edges = generate_nfa(str_to_nfa(infix_to_postfix(input_text)))
+        self.create_graph(nodes, edges)
 
-    # 检查正则表达式是否有效
-    try:
-        re.compile(regex)
-    except re.error:
-        messagebox.showerror('Invalid regular expression', 'Invalid regular expression. Please enter a valid one.')
-        return
+    def DFA(self, input_text):
+        nodes, edges = generate_nfa(str_to_nfa(infix_to_postfix(input_text)))
+        nodes, edges = nfa_to_dfa(nodes, edges)
+        self.create_graph(nodes, edges)
 
-    # 根据选项调用相应的函数
-    if option == 'NFA':
-        NFA(regex)
-    elif option == 'DFA':
-        DFA(regex)
-    elif option == 'Minimized DFA':
-        Min_DFA(regex)
-    else:
-        option = None
-        messagebox.showerror('Invalid option', 'Invalid option. Please select NFA, DFA, or Minimized DFA.')
-        return
+    def Min_DFA(self, input_text):
+        nodes, edges = generate_nfa(str_to_nfa(infix_to_postfix(input_text)))
+        nodes, edges = nfa_to_dfa(nodes, edges)
+        nodes, edges = DFA_Minimize(nodes, edges)
+        self.create_graph(nodes, edges)
 
-# 创建主窗口
-root = tk.Tk()
-root.title('Experiment-2')
-root.configure(bg='#FFC0CB')  
-
-# 创建布局
-frame = ttk.Frame(root, padding='10', style='My.TFrame')
-frame.grid(column=0, row=0, sticky=(tk.W, tk.E, tk.N, tk.S))
-
-# 创建控件
-regex_label = ttk.Label(frame, text='INPUT:', style='My.TLabel')
-regex_entry = ttk.Entry(frame, width=30)
-option_label = ttk.Label(frame, text='SELECT:', style='My.TLabel')
-option_combobox = ttk.Combobox(frame, values=['NFA', 'DFA', 'Minimized DFA'], width=25)
-submit_button = ttk.Button(frame, text='Submit', command=submit_button_clicked, style='My.TButton')
-
-# 布局控件
-regex_label.grid(column=0, row=0, pady=(10, 10))
-regex_entry.grid(column=1, row=0, pady=(10, 10))
-option_label.grid(column=0, row=1, pady=(10, 10))
-option_combobox.grid(column=1, row=1, pady=(10, 10))
-submit_button.grid(column=0, row=2, columnspan=2, pady=(10, 20))
+    def set_example(self, example):
+        self.regex_entry.delete(0, tk.END)
+        self.regex_entry.insert(0, example)
 
 
-# 定义样式
-style = ttk.Style()
-style.configure('My.TFrame', background='#FFC0CB') 
-style.configure('My.TLabel', background='#FFC0CB') 
-style.configure('My.TButton', background='#FF69B4')  
-
-# 调整窗口大小
-root.geometry("350x200")
-
-# 运行主循环
-root.mainloop()
-
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = App(root)
+    root.mainloop()
