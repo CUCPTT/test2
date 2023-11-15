@@ -129,6 +129,9 @@ def get_mindfa(nodes,edges,new_nodes):
         if edge not in mindfa_edges:
             mindfa_edges.append(edge)
 
+    print("mindfa_nodes: ",mindfa_nodes)
+    print("mindfa_edges: ",mindfa_edges)
+
     return mindfa_nodes,mindfa_edges
 # # Example usage:
 # nodes = [(0, '0', 'begin', ''), (1, '1', '', ''), (2, '2', '', ''), (3, '3', '', ''), (4, '4', '', ''), (5, '5', '', ''), (6, '6', '', ''), (7, '7', '', 'end')]
@@ -147,6 +150,3 @@ def DFA_Minimize(nodes, edges):
 
 
 # mindfa_nodes,mindfa_edges= DFA_Minimize(nodes, edges)
-    
-# print("mindfa_nodes",mindfa_nodes)
-# print("mindfa_edges",mindfa_edges)

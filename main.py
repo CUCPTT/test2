@@ -101,7 +101,7 @@ class App:
                 dot.node(str(node[0]), node[1])
 
         for edge in edges:
-            dot.edge(str(edge[0]), str(edge[1]), label=edge[2])
+            dot.edge(str(edge[0]), str(edge[1]), label=edge[2], fontname="SimHei")
 
         dot.format = 'png'
         image_data = dot.pipe()
