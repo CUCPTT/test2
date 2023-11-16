@@ -81,6 +81,9 @@ def hopcroft_algorithm( G ):
                 else:
                     P_temp.append( Y )
             P = deepcopy( P_temp )
+
+    # 除去空集set()
+    P= [node_set for node_set in P if node_set]
     return P
 
 def get_mindfa(nodes,edges,new_nodes):
